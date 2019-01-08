@@ -12,9 +12,8 @@ const API_KEY = process.env.API_KEY;
 
 router.get("/search/:query", function(req, res) {
   const url = 'https://www.googleapis.com/books/v1/volumes?q='+req.params.query+'&key='+API_KEY;
-  console.log(url);
+
   axios.get(url).then(function(response) {
-    console.log(response.data.items);
     res.send(response.data.items);
   });
 });

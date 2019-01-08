@@ -5,22 +5,39 @@ import { Col, Row, Container } from "../components/Grid";
 import { List, ListItem } from "../components/List";
 import { Input, FormBtn } from "../components/Form";
 import {Modal} from "../components/Modal";
+import io from 'socket.io-client';
+
+
+
+var socket = io("http://localhost:3001");
+
+
 
 class Books extends Component {
   state = {
     books: [],
     query: "",
-    show: false
+    show: false,
+    msg: ""
   };
 
- 
+  componentDidMount = () => {
+    socket.on('user connected', msg => {
+      console.log(msg);
+    });
+    socket.on('book was saved', msg => {
+      console.log("listening: "+msg);
+      this.setState({msg: msg});
+      this.showModal();
+    });
+  };
 
   showModal = () => {
     this.setState({ show: true });
   };
 
   hideModal = () => {
-    this.setState({ show: false });
+    this.setState({ show: false , msg: ""});
   };
 
   handleInputChange = event => {
@@ -41,6 +58,7 @@ class Books extends Component {
     }
   };
 
+
   saveBook = book => {
     var image;
     if(book.volumeInfo.imageLinks) 
@@ -59,9 +77,20 @@ class Books extends Component {
       .then(res => {
         console.log(res.data);
         console.log("book saved");
+        this.setState({msg: "Book Saved"});
         this.showModal();
+        
+        
+        socket.emit('book saved','A user saved a book. Book Title: ' + res.data.title);
+        
+        
       })
       .catch(err => console.log(err));
+      // socket.on('book was saved', msg => {
+      //   console.log("listening: "+msg);
+      //   this.setState({msg: msg});
+      //   this.showModal();
+      // });
   }
   aStyle= {
     'textDecoration': 'none',
@@ -78,7 +107,7 @@ class Books extends Component {
               <h2>Search</h2>
             </Jumbotron>
             <Modal show={this.state.show} handleClose={this.hideModal}>
-              <p>Book Saved.</p>
+              <p>{this.state.msg}</p>
             </Modal>
             <form>
               <Input
